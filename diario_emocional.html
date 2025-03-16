@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diario Emocional</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #0078d4;
+        }
+        .menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .menu a {
+            text-decoration: none;
+            background-color: #0078d4;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .menu a:hover {
+            background-color: #005bb5;
+        }
+        .emoji-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .emoji-buttons button {
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .emoji-buttons button:hover {
+            transform: scale(1.2);
+        }
+        canvas {
+            max-width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Diario Emocional</h1>
+    <div class="menu">
+        <a href="index.html">Inicio</a>
+        <a href="test_nom035.html">Test NOM-035</a>
+        <a href="pausas_activas.html">Pausas Activas</a>
+        <a href="consejos_breves.html">Consejos Breves</a>
+        <a href="checklist_nom035.html">Checklist Semanal</a>
+    </div>
+
+    <div class="emoji-buttons">
+        <button onclick="recordEmotion('happy')">😊</button>
+        <button onclick="recordEmotion('neutral')">😐</button>
+        <button onclick="recordEmotion('sad')">😟</button>
+    </div>
+
+    <canvas id="emotionChart"></canvas>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDoJWVFyL97EZFtf1uHjJvHVahtt12b89E",
+            authDomain: "stress-4f853.firebaseapp.com",
+            projectId: "stress-4f853",
+            storageBucket: "stress-4f853.firebasestorage.app",
+            messagingSenderId: "804980468315",
+            appId: "1:804980468315:web:1c34fa2b47229170fe2d7e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+            }
+        });
+
+        const emotions = { happy: 0, neutral: 0, sad: 0 };
+
+        async function recordEmotion(emotion) {
+            try {
+                await addDoc(collection(db, "diario_emocional"), {
+                    emotion: emotion,
+                    timestamp: new Date()
+                });
+                alert(`Emoción registrada: ${emotion}`);
+                loadChartData();
+            } catch (error) {
+                console.error("Error al registrar emoción: ", error);
+            }
+        }
+
+        async function loadChartData() {
+            const querySnapshot = await getDocs(collection(db, "diario_emocional"));
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                emotions[data.emotion]++;
+            });
+
+            const ctx = document.getElementById('emotionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['😊 Feliz', '😐 Neutral', '😟 Triste'],
+                    datasets: [{
+                        label: 'Emociones',
+                        data: [emotions.happy, emotions.neutral, emotions.sad],
+                        backgroundColor: ['#4CAF50', '#FFC107', '#F44336']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        loadChartData();
+    </script>
+</body>
+</html>

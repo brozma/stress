@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test NOM-035</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #0078d4;
+        }
+        .menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .menu a {
+            text-decoration: none;
+            background-color: #0078d4;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .menu a:hover {
+            background-color: #005bb5;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .question label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        .question input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #0078d4;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005bb5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test NOM-035</h1>
+    <div class="menu">
+        <a href="index.html">Inicio</a>
+        <a href="pausas_activas.html">Pausas Activas</a>
+        <a href="diario_emocional.html">Diario Emocional</a>
+        <a href="consejos_breves.html">Consejos Breves</a>
+        <a href="checklist_nom035.html">Checklist Semanal</a>
+    </div>
+
+    <form id="testForm">
+        <div class="question">
+            <label for="stress">1. Nivel de estrés (1-10):</label>
+            <input type="number" id="stress" min="1" max="10" required>
+        </div>
+        <div class="question">
+            <label for="workload">2. Carga de trabajo (1-10):</label>
+            <input type="number" id="workload" min="1" max="10" required>
+        </div>
+        <div class="question">
+            <label for="balance">3. Equilibrio vida-trabajo (1-10):</label>
+            <input type="number" id="balance" min="1" max="10" required>
+        </div>
+        <button type="submit">Enviar</button>
+    </form>
+
+    <p id="result"></p>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDoJWVFyL97EZFtf1uHjJvHVahtt12b89E",
+            authDomain: "stress-4f853.firebaseapp.com",
+            projectId: "stress-4f853",
+            storageBucket: "stress-4f853.firebasestorage.app",
+            messagingSenderId: "804980468315",
+            appId: "1:804980468315:web:1c34fa2b47229170fe2d7e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+            }
+        });
+
+        document.getElementById('testForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const stress = document.getElementById('stress').value;
+            const workload = document.getElementById('workload').value;
+            const balance = document.getElementById('balance').value;
+
+            try {
+                await addDoc(collection(db, "test_nom035"), {
+                    stress: parseInt(stress),
+                    workload: parseInt(workload),
+                    balance: parseInt(balance),
+                    timestamp: new Date()
+                });
+                document.getElementById('result').textContent = "Resultado: Nivel de estrés alto. ¡Toma medidas!";
+            } catch (error) {
+                console.error("Error al guardar: ", error);
+            }
+        });
+    </script>
+</body>
+</html>
